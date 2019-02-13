@@ -1,6 +1,5 @@
 server = Artifactory.server "artifactory"
 rtFullUrl = server.url
-pipelineUtils = load 'pipelineUtils.groovy'
 
 podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         containerTemplate(name: 'jfrog-cli', image: 'docker.bintray.io/jfrog/jfrog-cli-go:latest', command: 'cat', ttyEnabled: true) ,
@@ -19,6 +18,7 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
 
 
 def getLatestHelmChartBuildNumber (server_url) {
+    pipelineUtils = load 'pipelineUtils.groovy'
     def aqlString = 'builds.find ({"name": {"$eq":"demo-docker-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
     results = pipelineUtils.executeAql(aqlString)
 
