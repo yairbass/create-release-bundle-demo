@@ -45,6 +45,13 @@ private executeAql(aqlString) {
     }
 }
 
+def getArtifactoryServiceId() {
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+        getServiceIdCommand = ["curl", "-s", "-u$USERNAME:$PASSWORD", "$rtFullUrl/api/system/service_id"]
+        return getServiceIdCommand.execute().text
+    }
+}
+
 
 def getLatestHelmChartBuildNumber () {
     def aqlString = 'builds.find ({"name": {"$eq":"demo-helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
@@ -84,6 +91,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
             "{ \"artifact.module.build.number\": { \"\$eq\": \" + " + chartBuildId + "\" } }).include(\"path\")"
 
     def aqlDockerString = "items.find({\\\"repo\\\":\\\"docker-local-prod\\\",\\\"name\\\":\\\"" + dockerVersion + "\\\"})"
+
     def releaseBundle = """ {
       "name":"helm-demo-app-bundle",
       "version": "${chartBuildId}",
@@ -93,7 +101,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
             "source_artifactory_id": "artifactory",
               "queries":[
               {
-                 "aql": "${aqlhelmString}"
+                 "aql": "${getArtifactoryServiceId()}"
               },
               {
                  "aql": "${aqlDockerString}"
