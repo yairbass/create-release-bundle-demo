@@ -80,8 +80,8 @@ def getBuildDockerImageManifestChecksum (build_number) {
 }
 
 def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
-    def aqlhelmString ="items.find({ \"artifact.module.build.name\": { \"$eq\": \"demo-helm-app-demo\" } }," +
-            "{ \"artifact.module.build.number\": { \"$eq\": \" + " + chartBuildId + "\" } }).include(\"path\")"
+    def aqlhelmString ="items.find({ \"artifact.module.build.name\": { \"\$eq\": \"demo-helm-app-demo\" } }," +
+            "{ \"artifact.module.build.number\": { \"\$eq\": \" + " + chartBuildId + "\" } }).include(\"path\")"
 
     def aqlDockerString = "items.find({\\\"repo\\\":\\\"docker-local-prod\\\",\\\"name\\\":\\\"" + dockerVersion + "\\\"})"
     def releaseBundle = """ {
