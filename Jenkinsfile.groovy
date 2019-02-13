@@ -6,6 +6,9 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         containerTemplate(name: 'helm', image: 'alpine/helm:latest', command: 'cat', ttyEnabled: true) ]) {
 
     node('helm-template') {
+        git url: 'https://github.com/eladh/create-release-bundle-demo.git', credentialsId: 'github'
+        def pipelineUtils = load 'pipelineUtils.groovy'
+
         stage('Build Chart & push it to Artifactory') {
            def id =  getLatestHelmChartBuildNumber(rtFullUrl)
             println id
@@ -18,7 +21,6 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
 
 
 def getLatestHelmChartBuildNumber (server_url) {
-    pipelineUtils = load 'pipelineUtils.groovy'
     def aqlString = 'builds.find ({"name": {"$eq":"demo-docker-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
     results = pipelineUtils.executeAql(aqlString)
 
