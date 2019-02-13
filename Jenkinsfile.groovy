@@ -12,7 +12,7 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         stage('Build Chart & push it to Artifactory') {
             latestHelmBuildId =  getLatestHelmChartBuildNumber()
             dockerChecksum = getDockerPathByChecksum(getBuildDockerImageManifestChecksum(latestHelmBuildId))
-            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , env.DISTRIBUTION_URL)
+            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , "http://35.238.210.38")
         }
     }
 }
