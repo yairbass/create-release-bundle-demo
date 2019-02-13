@@ -1,4 +1,5 @@
 import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 
 server = Artifactory.server "artifactory"
 rtFullUrl = server.url
@@ -86,31 +87,51 @@ def getBuildDockerImageManifestChecksum (build_number) {
     }
 }
 
-def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
-    def aqlhelmString ="items.find({ \"artifact.module.build.name\": { \"\$eq\": \"demo-helm-app-demo\" } }," +
-            "{ \"artifact.module.build.number\": { \"\$eq\": \" + " + chartBuildId + "\" } }).include(\"path\")"
+def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
 
-    def aqlDockerString = "items.find({\\\"repo\\\":\\\"docker-local-prod\\\",\\\"name\\\":\\\"" + dockerVersion + "\\\"})"
+    def aqlhelmString = """
+            items.find(
+                    {
+                        \"artifact.module.build.name\": {
+                                    \"\$eq\": \"demo-helm-app-demo\"
+                                }
+                    } ,
+                    {
+                        \"artifact.module.build.number\": {
+                                    \"\$eq\": \"${chartBuildId}\"
+                                }
+                    }
+           )
+            """.replaceAll(" ", "").replaceAll("\n", "")
 
-    def releaseBundle = """ {
-      "name":"helm-demo-app-bundle",
-      "version": "${chartBuildId}",
-      "description":"Sample Docker App build",
-      "dry_run":"false",
-      "spec": {
-            "source_artifactory_id": "artifactory",
-              "queries":[
-              {
-                 "aql": "${getArtifactoryServiceId()}"
-              },
-              {
-                 "aql": "${aqlDockerString}"
-              }]
-       }
-    }"""
+    def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
+
+    println aqlhelmString
+
+    def releaseBundleBody = [
+            'name': "my-111",
+            'version': "${chartBuildId}",
+            'dry_run': false,
+            'sign_immediately': false,
+            'description': 'Release bundle for the example java-project',
+            'spec': [
+                    'source_artifactory_id': "${getArtifactoryServiceId()}",
+                    'queries': [
+                            [
+                                    'aql': "${aqldockerAppString}"
+                            ],
+                            [
+                                    'aql': "${aqlhelmString}"
+                            ]
+                    ]
+            ]
+    ]
+
+    releaseBundleJson = JsonOutput.toJson(releaseBundleBody)
+
 
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        def rbdnRequest = ["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "${releaseBundle}", "-u", "$USERNAME:$PASSWORD", "${distribution_url}release_bundle"]
+        def rbdnRequest = ["curl", "-X", "POST", "-H", "Content-Type: application/json", "-d", "${releaseBundleJson}", "-u", "$USERNAME:$PASSWORD", "${distribution_url}/api/v1/release_bundle"]
 
         try {
             def rbdnResponse = rbdnRequest.execute().text
