@@ -136,7 +136,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
         try {
             def rbdnResponse = rbdnRequest.execute().text
             println "Release Bundle Response is: " + rbdnResponse
-            if (!rbdnResponse.contains("False")) {
+            if (rbdnResponse.contains("status_code")) {
                error("unable to create distribution bundle")
             }
         } catch (Exception e) {
