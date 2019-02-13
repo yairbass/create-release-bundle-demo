@@ -12,7 +12,7 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         stage('Build Chart & push it to Artifactory') {
             latestHelmBuildId =  getLatestHelmChartBuildNumber()
             dockerChecksum = getDockerPathByChecksum(getBuildDockerImageManifestChecksum(latestHelmBuildId))
-            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , "http://35.222.153.88")
+            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , ${env.DISTRIBUTION_URL})
         }
     }
 }
@@ -112,7 +112,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
             'name': "my-111",
             'version': "${chartBuildId}",
             'dry_run': false,
-            'sign_immediately': false,
+            'sign_immediately': true,
             'description': 'Release bundle for the example java-project',
             'spec': [
                     'source_artifactory_id': "${getArtifactoryServiceId()}",
