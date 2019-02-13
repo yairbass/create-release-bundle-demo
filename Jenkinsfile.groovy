@@ -9,9 +9,9 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
 
     node('helm-template') {
         stage('Build Chart & push it to Artifactory') {
-           def id =  getLatestHelmChartBuildNumber()
-            println id
-            println getDockerPathByChecksum(getBuildDockerImageManifestChecksum(id))
+            latestHelmBuildId =  getLatestHelmChartBuildNumber()
+            dockerChecksum = getDockerPathByChecksum(getBuildDockerImageManifestChecksum(latestHelmBuildId))
+            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , "http://35.222.153.88")
         }
     }
 }
@@ -57,7 +57,7 @@ def getDockerPathByChecksum (checksum) {
     def aqlString = 'items.find ({ "repo":"docker-prod-local","actual_sha1":"' + checksum + '", "path":{"$ne":"docker-multi-app/latest"}})'
     results = executeAql(aqlString)
 
-    return results
+    return results.path
 }
 
 
@@ -79,8 +79,10 @@ def getBuildDockerImageManifestChecksum (build_number) {
     }
 }
 
-def createDemoAppRelaseBunlde (sourceArtifactoryId, chartVersion, dockerVersion, distribution_url) {
-    def aqlhelmString = "items.find({\\\"repo\\\":\\\"helm-local\\\",\\\"name\\\":\\\"" + chartVersion + "\\\"})"
+def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
+    def aqlhelmString ="items.find({ \"artifact.module.build.name\": { \"$eq\": \"demo-helm-app-demo\" } }," +
+            "{ \"artifact.module.build.number\": { \"$eq\": \" + " + chartBuildId + "\" } }).include(\"path\")"
+
     def aqlDockerString = "items.find({\\\"repo\\\":\\\"docker-local-prod\\\",\\\"name\\\":\\\"" + dockerVersion + "\\\"})"
     def releaseBundle = """ {
       "name":"helm-demo-app-bundle",
@@ -88,7 +90,7 @@ def createDemoAppRelaseBunlde (sourceArtifactoryId, chartVersion, dockerVersion,
       "description":"Sample Docker App build",
       "dry_run":"false",
       "spec": {
-            "source_artifactory_id": "$sourceArtifactoryId",
+            "source_artifactory_id": "artifactory",
               "queries":[
               {
                  "aql": "${aqlhelmString}"
