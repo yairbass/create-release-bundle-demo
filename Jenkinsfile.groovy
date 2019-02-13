@@ -9,9 +9,9 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
 
     node('helm-template') {
         stage('Build Chart & push it to Artifactory') {
-           def id =  getLatestHelmChartBuildNumber(rtFullUrl)
+           def id =  getLatestHelmChartBuildNumber()
             println id
-            println getBuildDockerImageManifestChecksum(id)
+            println getDockerPathByChecksum(getBuildDockerImageManifestChecksum(id))
         }
     }
 }
@@ -46,11 +46,18 @@ private executeAql(aqlString) {
 }
 
 
-def getLatestHelmChartBuildNumber (server_url) {
+def getLatestHelmChartBuildNumber () {
     def aqlString = 'builds.find ({"name": {"$eq":"demo-helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
     results = executeAql(aqlString)
 
-    return results['build.number'];
+    return results['build.number']
+}
+
+def getDockerPathByChecksum (checksum) {
+    def aqlString = 'items.find ({ "repo":"docker-prod-local","actual_sha1":"' + checksum + '", "path":{"$ne":"docker-multi-app/latest"}})'
+    results = executeAql(aqlString)
+
+    return results
 }
 
 
