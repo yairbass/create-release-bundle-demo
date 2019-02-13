@@ -6,13 +6,9 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         containerTemplate(name: 'helm', image: 'alpine/helm:latest', command: 'cat', ttyEnabled: true) ]) {
 
     node('helm-template') {
-        git url: 'https://github.com/eladh/create-release-bundle-demo.git', credentialsId: 'github'
-        def pipelineUtils = load 'pipelineUtils.groovy'
-
         stage('Build Chart & push it to Artifactory') {
            def id =  getLatestHelmChartBuildNumber(rtFullUrl)
             println id
-
         }
     }
 }
@@ -20,9 +16,36 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
 //Utils
 
 
+private executeAql(aqlString) {
+    File aqlFile = File.createTempFile("aql-query", ".tmp")
+    aqlFile.deleteOnExit()
+    aqlFile << aqlString
+
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass',
+                      usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+
+        def getAqlSearchUrl = "curl -u$USERNAME:$PASSWORD -X POST " + rtFullUrl + "/api/search/aql -T " + aqlFile.getAbsolutePath()
+        echo getAqlSearchUrl
+        try {
+            println aqlString
+            def response = getAqlSearchUrl.execute().text
+            println response
+            def jsonSlurper = new JsonSlurper()
+            def latestArtifact = jsonSlurper.parseText("${response}")
+
+            println latestArtifact
+            return new HashMap<>(latestArtifact.results[0])
+        } catch (Exception e) {
+            println "Caught exception finding lastest artifact. Message ${e.message}"
+            throw e as java.lang.Throwable
+        }
+    }
+}
+
+
 def getLatestHelmChartBuildNumber (server_url) {
     def aqlString = 'builds.find ({"name": {"$eq":"demo-docker-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
-    results = pipelineUtils.executeAql(aqlString)
+    results = executeAql(aqlString)
 
     return results['build.number'];
 }
