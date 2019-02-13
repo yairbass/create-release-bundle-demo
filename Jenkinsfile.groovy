@@ -1,7 +1,6 @@
 import groovy.json.JsonSlurper
 
-
-erver = Artifactory.server "artifactory"
+server = Artifactory.server "artifactory"
 rtFullUrl = server.url
 
 podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
@@ -47,13 +46,28 @@ private executeAql(aqlString) {
 
 
 def getLatestHelmChartBuildNumber (server_url) {
-    def aqlString = 'builds.find ({"name": {"$eq":"demo-docker-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
+    def aqlString = 'builds.find ({"name": {"$eq":"demo-helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
     results = executeAql(aqlString)
 
     return results['build.number'];
 }
 
 
+def getBuildDockerImageManifestChecksum (server_url, build_number) {
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + server_url + "/api/build/step4-create-docker-multi-app-helm-chart/$build_number"
+
+        try {
+            def buildInfoText = getBuildInfo.execute().text
+            def jsonSlurper = new JsonSlurper()
+            def buildInfo = jsonSlurper.parseText("${buildInfoText}")
+            return buildInfo.buildInfo.modules[0].dependencies.find{it.id == "manifest.json"}.sha1
+        } catch (Exception e) {
+            println "Caught exception finding latest helm chart build number. Message ${e.message}"
+            throw e
+        }
+    }
+}
 
 def createDemoAppRelaseBunlde (sourceArtifactoryId, chartVersion, dockerVersion, distribution_url) {
     def aqlhelmString = "items.find({\\\"repo\\\":\\\"helm-local\\\",\\\"name\\\":\\\"" + chartVersion + "\\\"})"
