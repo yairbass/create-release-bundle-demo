@@ -11,6 +11,7 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         stage('Build Chart & push it to Artifactory') {
            def id =  getLatestHelmChartBuildNumber(rtFullUrl)
             println id
+            println getBuildDockerImageManifestChecksum(id)
         }
     }
 }
@@ -53,15 +54,15 @@ def getLatestHelmChartBuildNumber (server_url) {
 }
 
 
-def getBuildDockerImageManifestChecksum (server_url, build_number) {
-    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + server_url + "/api/build/step4-create-docker-multi-app-helm-chart/$build_number"
+def getBuildDockerImageManifestChecksum (build_number) {
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + rtFullUrl + "/api/build/demo-docker-app-demo/$build_number"
 
         try {
             def buildInfoText = getBuildInfo.execute().text
             def jsonSlurper = new JsonSlurper()
             def buildInfo = jsonSlurper.parseText("${buildInfoText}")
-            return buildInfo.buildInfo.modules[0].dependencies.find{it.id == "manifest.json"}.sha1
+            return buildInfo.buildInfo.modules[0].dependencies;
         } catch (Exception e) {
             println "Caught exception finding latest helm chart build number. Message ${e.message}"
             throw e
