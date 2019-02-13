@@ -86,7 +86,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerVersion, distribution_url) {
     def aqlDockerString = "items.find({\\\"repo\\\":\\\"docker-local-prod\\\",\\\"name\\\":\\\"" + dockerVersion + "\\\"})"
     def releaseBundle = """ {
       "name":"helm-demo-app-bundle",
-      "version": "${chartVersion}",
+      "version": "${chartBuildId}",
       "description":"Sample Docker App build",
       "dry_run":"false",
       "spec": {
