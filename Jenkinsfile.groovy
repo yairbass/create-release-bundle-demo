@@ -109,7 +109,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
     println aqlhelmString
 
     def releaseBundleBody = [
-            'name': "my-111",
+            'name': "demo-app",
             'version': "${chartBuildId}",
             'dry_run': false,
             'sign_immediately': true,
@@ -136,6 +136,9 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
         try {
             def rbdnResponse = rbdnRequest.execute().text
             println "Release Bundle Response is: " + rbdnResponse
+            if (!rbdnResponse.contains("False")) {
+               error("unable to create distribution bundle")
+            }
         } catch (Exception e) {
             println "Caught exception finding latest docker-multi-app helm chart. Message ${e.message}"
             throw e
