@@ -1,4 +1,7 @@
-server = Artifactory.server "artifactory"
+import groovy.json.JsonSlurper
+
+
+erver = Artifactory.server "artifactory"
 rtFullUrl = server.url
 
 podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
