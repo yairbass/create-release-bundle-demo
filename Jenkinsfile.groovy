@@ -12,13 +12,12 @@ podTemplate(label: 'helm-template' , cloud: 'k8s' , containers: [
         stage('Build Chart & push it to Artifactory') {
             latestHelmBuildId =  getLatestHelmChartBuildNumber()
             dockerChecksum = getDockerPathByChecksum(getBuildDockerImageManifestChecksum(latestHelmBuildId))
-            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , env.DISTRIBUTION_SERVICE_HOST)
+            createDemoAppReleaseBundle(latestHelmBuildId ,dockerChecksum , env.DISTRIBUTION_SERVER_SERVICE_HOST)
         }
     }
 }
 
 //Utils
-
 
 private executeAql(aqlString) {
     File aqlFile = File.createTempFile("aql-query", ".tmp")
@@ -105,8 +104,6 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
             """.replaceAll(" ", "").replaceAll("\n", "")
 
     def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
-
-    println aqlhelmString
 
     def releaseBundleBody = [
             'name': "demo-app",
