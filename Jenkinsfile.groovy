@@ -70,7 +70,7 @@ def getDockerPathByChecksum (checksum) {
 
 def getBuildDockerImageManifestChecksum (build_number) {
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + rtFullUrl + "/api/build/demo-helm-app-demo/$build_number"
+        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + rtFullUrl + "/api/build/helm-app-demo/$build_number"
         println getBuildInfo
 
         try {
