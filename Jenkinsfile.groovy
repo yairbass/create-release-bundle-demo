@@ -54,7 +54,7 @@ def getArtifactoryServiceId() {
 
 
 def getLatestHelmChartBuildNumber () {
-    def aqlString = 'builds.find ({"name": {"$eq":"demo-helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
+    def aqlString = 'builds.find ({"name": {"$eq":"helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
     results = executeAql(aqlString)
 
     return results['build.number']
@@ -92,7 +92,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
             items.find(
                     {
                         \"artifact.module.build.name\": {
-                                    \"\$eq\": \"demo-helm-app-demo\"
+                                    \"\$eq\": \"helm-app-demo\"
                                 }
                     } ,
                     {
