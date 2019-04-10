@@ -101,7 +101,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                                 }
                     },
                     {
-                       \"repo\\": {
+                       \"repo\": {
                                     \"\$eq\": \"helm-local\"
                                 }
                     }
