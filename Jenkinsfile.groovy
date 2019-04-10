@@ -99,6 +99,11 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                         \"artifact.module.build.number\": {
                                     \"\$eq\": \"${chartBuildId}\"
                                 }
+                    },
+                    {
+                       \"repo\\": {
+                                    \"\$eq\": \"helm-local\"
+                                }
                     }
            )
             """.replaceAll(" ", "").replaceAll("\n", "")
