@@ -54,14 +54,14 @@ def getArtifactoryServiceId() {
 
 
 def getLatestHelmChartBuildNumber () {
-    def aqlString = 'builds.find ({"name": {"$eq":"helm-app-demo"}}).sort({"$desc":["created"]}).limit(1)'
+    def aqlString = 'builds.find ({"name": {"$eq":"helm-petclinic"}}).sort({"$desc":["created"]}).limit(1)'
     results = executeAql(aqlString)
 
     return results['build.number']
 }
 
 def getDockerPathByChecksum (checksum) {
-    def aqlString = 'items.find ({ "repo":"docker-prod-local","actual_sha1":"' + checksum + '", "path":{"$ne":"docker-multi-app/latest"}})'
+    def aqlString = 'items.find ({ "repo":"docker-prod-local","actual_sha1":"' + checksum + '", "path":{"$ne":"petclinic-app/latest"}})'
     results = executeAql(aqlString)
 
     return results.path
@@ -70,7 +70,7 @@ def getDockerPathByChecksum (checksum) {
 
 def getBuildDockerImageManifestChecksum (build_number) {
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'artifactorypass', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + rtFullUrl + "/api/build/helm-app-demo/$build_number"
+        def getBuildInfo = "curl -u$USERNAME:$PASSWORD " + rtFullUrl + "/api/build/helm-petclinic/$build_number"
         println getBuildInfo
 
         try {
@@ -92,7 +92,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
             items.find(
                     {
                         \"artifact.module.build.name\": {
-                                    \"\$eq\": \"helm-app-demo\"
+                                    \"\$eq\": \"helm-petclinic\"
                                 }
                     } ,
                     {
@@ -111,7 +111,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
     def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
 
     def releaseBundleBody = [
-            'name': "demo-app",
+            'name': "petclinic-app",
             'version': "${chartBuildId}",
             'dry_run': false,
             'sign_immediately': true,
