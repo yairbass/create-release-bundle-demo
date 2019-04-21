@@ -128,7 +128,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                                     'aql': "${aqlhelmString}"
                             ]
                             [
-                                    'aql': "${aqlmysqldata'
+                                    'aql': "${aqlmysqldata}"
                             ]
                     ]
             ]
