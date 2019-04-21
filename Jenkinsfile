@@ -63,9 +63,9 @@ def getLatestHelmChartBuildNumber () {
 def getDockerPathByChecksum (checksum) {
     def aqlString = 'items.find ({ "repo":"docker-prod-local","actual_sha1":"' + checksum + '", "path":{"$ne":"petclinic-app/latest"}})'
     results = executeAql(aqlString)
-
     return results.path
 }
+
 
 
 def getBuildDockerImageManifestChecksum (build_number) {
@@ -110,6 +110,8 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
 
     def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
 
+    def aqlmysqldata = "items.find({\"repo\":\"data-generic-repo\",\"type\":\"folder\",\"path\":\".\",\"name\":\"dbdata\"})"
+
     def releaseBundleBody = [
             'name': "petclinic-app",
             'version': "${chartBuildId}",
@@ -124,6 +126,9 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                             ],
                             [
                                     'aql': "${aqlhelmString}"
+                            ]
+                            [
+                                    'aql': "${aqlmysqldata'
                             ]
                     ]
             ]
