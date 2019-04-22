@@ -110,7 +110,8 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
 
     def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
 
-    def aqlmysqldata = "items.find({\"repo\":\"data-generic-repo\",\"type\":\"folder\",\"path\":\"dbdata\",\"name\":\"dbdata.tgz\"})"
+    def aqlmysqldata = "items.find ({ \"repo\":\"data-generic-repo\", \"path\":{\"$match\":\"dbdata\"},\"name\":{\"$match\":\"*tgz*\"}}).include(\"created\",\"path\",\"name\").sort({\"$desc\":[\"created\"]}).limit(1)"
+
 
     def releaseBundleBody = [
             'name': "petclinic-app",
@@ -126,7 +127,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                             ],
                             [
                                     'aql': "${aqlhelmString}"
-                            ]
+                            ],
                             [
                                     'aql': "${aqlmysqldata}"
                             ]
