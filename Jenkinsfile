@@ -101,16 +101,16 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
                                 }
                     },
                     {
-                       \"repo\": {
+                      \"repo\": {
                                     \"\$eq\": \"helm-local\"
                                 }
                     }
-           )
+          )
             """.replaceAll(" ", "").replaceAll("\n", "")
 
     def aqldockerAppString = "items.find({\"repo\":\"docker-prod-local\",\"path\":\"" + dockerImage + "\"})"
 
-    def aqlmysqldata = "items.find ({ \"repo\":\"data-generic-repo\", \"path\":{\"$match\":\"dbdata\"},\"name\":{\"$match\":\"*tgz*\"}}).include(\"created\",\"path\",\"name\").sort({\"$desc\":[\"created\"]}).limit(1)"
+    def aqlmysqldata = 'items.find({"repo":"data-generic-repo","path":{"$match":"dbdata"},"name":{"$match":"*tgz*"}})'
 
 
     def releaseBundleBody = [
@@ -145,7 +145,7 @@ def createDemoAppReleaseBundle(chartBuildId, dockerImage, distribution_url) {
             def rbdnResponse = rbdnRequest.execute().text
             println "Release Bundle Response is: " + rbdnResponse
             if (rbdnResponse.contains("status_code")) {
-               error("unable to create distribution bundle")
+                error("unable to create distribution bundle")
             }
         } catch (Exception e) {
             println "Caught exception finding latest docker-multi-app helm chart. Message ${e.message}"
